@@ -1,3 +1,5 @@
+cheat_sheet.md
+
 # Terraform generated files and directories
 .terraform/
 *.tfstate
