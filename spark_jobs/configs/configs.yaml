@@ -1,0 +1,13 @@
+spark:
+  app_name: Glue job trading pipeline
+
+  configs:
+    spark.sql.caseSensitive: true
+
+paths:
+  root: "" # add s3 bucket path
+  sample_data: "data/sample_data.jsonl"
+
+  bronze:
+    base: "/data/bronze"
+    checkpoint: "/data/bronze/_checkpoint"
