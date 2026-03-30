@@ -1,13 +1,24 @@
 spark:
   app_name: Glue job trading pipeline
+  version: "1.0.0"
+  schema_version: 1
 
   configs:
     spark.sql.caseSensitive: true
 
 paths:
-  root: "" # add s3 bucket path
+  root: "file:///D:/Projects/trading-analitical-module/spark_jobs" # add s3 bucket path
   sample_data: "data/sample_data.jsonl"
 
   bronze:
     base: "/data/bronze"
     checkpoint: "/data/bronze/_checkpoint"
+  
+  silver:
+    orders: "data/silver/orders"
+    account: "data/silver/account"
+    checkpoint: "/data/silver/_checkpoint"
+
+# Quarantine for bad records
+  quarantine:
+    base: "/data/quarantine"
