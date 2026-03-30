@@ -27,3 +27,8 @@ terraform.rc
 
 # Editor/IDE specific files (e.g., VS Code)
 .vscode/
+
+__pycache__
+
+# Ignore local test data
+data
