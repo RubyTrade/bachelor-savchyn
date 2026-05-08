@@ -7,6 +7,7 @@ cheat_sheet.md
 .terraform.tfstate.lock.info
 crash.log
 crash.*.log
+*.hcl
 
 # Sensitive variable files (e.g., containing secrets)
 *.tfvars
@@ -20,6 +21,7 @@ override.tf.json
 
 # Saved plan files
 *.tfplan
+infrastructure/glue_src.zip
 
 # Terraform CLI configuration files
 .terraformrc

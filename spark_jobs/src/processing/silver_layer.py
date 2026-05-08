@@ -49,69 +49,72 @@ class SilverProcessor:
 
     def create_orders_silver(self, orders_parsed: DataFrame) -> DataFrame:
         print('Creating orders silver table')
-        
+
+        d = col("data")
+        o = d["o"]
+
         silver_df = orders_parsed.select(
             # event metadata
-            col("data.e").alias("event_type"),
-            col("data.T").alias("event_time"),
-            col("data.E").alias("event_received_time"),
+            d["e"].alias("event_type"),
+            d["T"].alias("event_time"),
+            d["E"].alias("event_received_time"),
 
             # order core
-            col("data.o.s").alias("symbol"),
-            col("data.o.c").alias("client_order_id"),
-            col("data.o.S").alias("side"),
-            col("data.o.o").alias("order_type"),
-            col("data.o.f").alias("time_in_force"),
+            o["s"].alias("symbol"),
+            o["c"].alias("client_order_id"),
+            o["S"].alias("side"),
+            o["o"].alias("order_type"),
+            o["f"].alias("time_in_force"),
 
             # prices & quantities
-            col("data.o.q").alias("original_quantity"),
-            col("data.o.p").alias("price"),
-            col("data.o.ap").alias("avg_price"),
-            col("data.o.sp").alias("stop_price"),
+            o["q"].alias("original_quantity"),
+            o["p"].alias("price"),
+            o["ap"].alias("avg_price"),
+            o["sp"].alias("stop_price"),
 
             # execution state
-            col("data.o.x").alias("execution_type"),
-            col("data.o.X").alias("order_status"),
+            o["x"].alias("execution_type"),
+            o["X"].alias("order_status"),
 
             # identifiers
-            col("data.o.i").alias("order_id"),
+            o["i"].alias("order_id"),
 
             # fills
-            col("data.o.l").alias("last_fill_qty"),
-            col("data.o.z").alias("cum_fill_qty"),
-            col("data.o.L").alias("last_fill_price"),
+            o["l"].alias("last_fill_qty"),
+            o["z"].alias("cum_fill_qty"),
+            o["L"].alias("last_fill_price"),
 
             # commission
-            col("data.o.n").alias("commission"),
-            col("data.o.N").alias("commission_asset"),
+            o["n"].alias("commission"),
+            o["N"].alias("commission_asset"),
 
             # trade info
-            col("data.o.T").alias("trade_time"),
-            col("data.o.t").alias("trade_id"),
+            o["T"].alias("trade_time"),
+            o["t"].alias("trade_id"),
 
             # notionals
-            col("data.o.b").alias("bid_notional"),
-            col("data.o.a").alias("ask_notional"),
+            o["b"].alias("bid_notional"),
+            o["a"].alias("ask_notional"),
 
             # flags
-            col("data.o.m").alias("is_maker"),
-            col("data.o.R").alias("is_reduce_only"),
+            o["m"].alias("is_maker"),
+            o["R"].alias("is_reduce_only"),
 
             # order config
-            col("data.o.wt").alias("working_type"),
-            col("data.o.ot").alias("original_order_type"),
-            col("data.o.ps").alias("position_side"),
+            o["wt"].alias("working_type"),
+            o["ot"].alias("original_order_type"),
+            o["ps"].alias("position_side"),
 
             # pnl / risk
-            col("data.o.cp").alias("close_position"),
-            col("data.o.rp").alias("realized_pnl"),
-            col("data.o.pP").alias("price_protect"),
+            o["cp"].alias("close_position"),
+            o["rp"].alias("realized_pnl"),
+            o["pP"].alias("price_protect"),
 
             # misc
-            col("data.o.V").alias("stp_mode"),
-            col("data.o.pm").alias("price_match_mode"),
-            col("data.o.gtd").alias("good_till_date"),
-            col("data.o.er").alias("event_reason"),
+            o["V"].alias("stp_mode"),
+            o["pm"].alias("price_match_mode"),
+            o["gtd"].alias("good_till_date"),
+            o["er"].alias("event_reason"),
 
             # ingestion metadata
             col("ingest_time"),
@@ -152,6 +155,7 @@ class SilverProcessor:
             col("position.s").alias("symbol"),
             col("position.pa").alias("position_amount"),
             col("position.ep").alias("entry_price"),
+            col("position.cr").alias("realized_pnl"),
             col("position.up").alias("unrealized_pnl"),
             col("position.ps").alias("position_side"),
 
@@ -159,18 +163,17 @@ class SilverProcessor:
             col("raw_json")
         )
 
-        # silver_df = Sparktransformations.filter_not_null(silver_df, ['symbol', 'position_side', 'quantity', 'price', 'event_time'])
         silver_df = Sparktransformations.cast_to_timestamp(silver_df, ['event_time', 'event_received_time'])
         silver_df = Sparktransformations.add_partition_columns(silver_df, ['event_time'])
         silver_df = Sparktransformations.add_metadata_columns(silver_df, self.schema_version)
         return silver_df
     
     def save_quarantine(self, silver_df: DataFrame, columns: list, quarantine_path: str, silver_path: str):
-        null_condition = reduce(or_, [col(c).isNull() for c in columns])
-        not_null_condition = reduce(and_, [col(c).isNotNull() for c in columns])
+        # null_condition = reduce(or_, [col(c).isNull() for c in columns])
+        # not_null_condition = reduce(and_, [col(c).isNotNull() for c in columns])
 
-        clean_df = silver_df.filter(not_null_condition)
-        quarantine_df = silver_df.filter(null_condition)
+        clean_df = Sparktransformations.filter_not_null(silver_df, columns)
+        quarantine_df = Sparktransformations.filter_null(silver_df, columns)
 
         quarantine_count = quarantine_df.limit(1).count()
 

@@ -92,6 +92,7 @@ class BinanceSchemas:
                     StructField("s", StringType()),
                     StructField("pa", DecimalType(18, 8)),
                     StructField("ep", DecimalType(18, 8)),
+                    StructField("cr", DecimalType(18, 8)),
                     StructField("up", DecimalType(18, 8)),
                     StructField("ps", StringType())
                 ])))

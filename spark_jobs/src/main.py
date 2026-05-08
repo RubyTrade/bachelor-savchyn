@@ -2,17 +2,24 @@ from pyspark.sql import SparkSession
 from config_loader import load_config, get_path
 from processing.bronze_layer import BronzeProcessor
 from processing.silver_layer import SilverProcessor
+from processing.gold_layer import GoldProcessor
 from pathlib import Path
+import sys
 
 CONFIG_PATH = Path(__file__).resolve().parents[1] / "configs" / "configs.yaml"
 
 
 class LakehousePipeline:
-    def __init__(self):
-        self.config = load_config(CONFIG_PATH)
+    def __init__(self, config_path=None, pipeline_root=None):
+        self.config = load_config(config_path or CONFIG_PATH)
+        if pipeline_root:
+            self.config["paths"]["root"] = pipeline_root
         self.session = self.create_session()
         self.bronze_layer = BronzeProcessor(self.session, self.config)
         self.silver_layer = SilverProcessor(self.session, self.config)
+        self.gold_layer = GoldProcessor(self.session, self.config)
+        self.silver_order_path = get_path(self.config, "silver", "orders")
+        self.silver_account_path = get_path(self.config, "silver", "account")
 
     def create_session(self):
         print('Creating the spark session')
@@ -58,19 +65,27 @@ class LakehousePipeline:
             self.silver_layer.save_quarantine(order_silver, 
                                                 ['symbol', 'side', 'order_type', 'event_time'], 
                                                 get_path(self.config, "quarantine", "base" ),
-                                                get_path(self.config, "silver", "orders"))
-        
+                                                self.silver_order_path)
+
             self.silver_layer.save_quarantine(account_silver,
                                                 ['symbol', 'position_side', 'entry_price', 'event_time'],
                                                 get_path(self.config, "quarantine", "base" ),
-                                                get_path(self.config, "silver", "accounts"))
+                                                self.silver_account_path)
 
         except Exception as e:
             print(f"Failed run silver layer due to this error: {e}")
             raise e
 
     def run_gold_layer(self):
-        pass
+        order_df, account_df = self.gold_layer.read_silver(self.silver_order_path, self.silver_account_path)
+
+        order_df = self.gold_layer.create_orders_table(order_df)
+
+        daily_metrics_df = self.gold_layer.create_daily_metrcis(order_df)
+
+        self.gold_layer.save_to_gold_layer(daily_metrics_df, get_path(self.config, "gold", "daily_metrics"))
+        self.gold_layer.save_to_gold_layer(order_df, get_path(self.config, "gold", "trades"))
+
 
             
 
@@ -78,9 +93,7 @@ class LakehousePipeline:
         try:
             self.run_bronze_layer()
             self.run_silver_layer()
-            # df = self.session.read.parquet(get_path(self.config, "silver", "orders"))
-            # df.printSchema()
-            # df.show()
+            self.run_gold_layer()
         except Exception as e:
             print(f"failed to run layer error: {e}")
             raise
@@ -93,8 +106,39 @@ class LakehousePipeline:
 
 
 def main():
-    create_pipeline = LakehousePipeline()
+    runtime_args = _parse_runtime_args(sys.argv[1:])
+    create_pipeline = LakehousePipeline(
+        config_path=runtime_args.get("config-path"),
+        pipeline_root=runtime_args.get("pipeline-root"),
+    )
     create_pipeline.run_pipeline()
+
+
+def _parse_runtime_args(arguments):
+    parsed = {}
+    index = 0
+
+    while index < len(arguments):
+        token = arguments[index]
+        if not token.startswith("--"):
+            index += 1
+            continue
+
+        key = token[2:]
+        if "=" in key:
+            key, value = key.split("=", 1)
+            parsed[key] = value
+            index += 1
+            continue
+
+        if index + 1 < len(arguments) and not arguments[index + 1].startswith("--"):
+            parsed[key] = arguments[index + 1]
+            index += 2
+        else:
+            parsed[key] = "true"
+            index += 1
+
+    return parsed
 
 
 if __name__ == "__main__":
