@@ -14,6 +14,15 @@ class Sparktransformations:
         return df.filter(condition)
     
     @staticmethod
+    def filter_null(df: DataFrame, columns: list) -> DataFrame:
+        condition = reduce(
+            lambda acc, c: acc | col(c).isNull(),
+            columns[1:],
+            col(columns[0]).isNull()
+            )
+        return df.filter(condition)
+
+    @staticmethod
     def cast_to_timestamp(df: DataFrame, columns: list) -> DataFrame:
         for column in columns:
             if column in df.columns:
