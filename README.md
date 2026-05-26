@@ -16,6 +16,8 @@
 
 ### Spark Job run
 
-`cd spark_jobs/src/` 
+`cd spark_jobs/` 
+
+`pip install -r requirements-dev.txt`
 
 `python3 main.py`
