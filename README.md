@@ -16,6 +16,6 @@
 
 ### Spark Job run
 
-`cd sparj_jobs/src/` 
+`cd spark_jobs/src/` 
 
 `python3 main.py`
