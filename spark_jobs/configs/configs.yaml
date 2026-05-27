@@ -8,22 +8,22 @@ spark:
     spark.serializer: "org.apache.spark.serializer.KryoSerializer"
 
 paths:
-  root: "file:///D:/Projects/trading-analitical-module/spark_jobs" # add s3 bucket path
-  sample_data: "data/sample_data.jsonl"
+  root: "file:///D:/Projects/trading-analitical-module_new/spark_jobs" # add s3 bucket path
+  sample_data: "/data/sample_data.jsonl"
 
   bronze:
-    base: "/data/bronze"
-    checkpoint: "/data/bronze/_checkpoint"
+    base: "/bronze"
+    checkpoint: "/bronze/_checkpoint"
   
   silver:
-    orders: "/data/silver/orders"
-    account: "/data/silver/account"
-    checkpoint: "/data/silver/_checkpoint"
+    orders: "/silver/orders"
+    account: "/silver/account"
+    checkpoint: "/silver/_checkpoint"
 
   gold:
-    daily_metrics: "/data/gold/daily_metrics"
-    trades: "/data/gold/trades"
+    daily_metrics: "/gold/daily_metrics"
+    trades: "/gold/trades"
 
 # Quarantine for bad records
   quarantine:
-    base: "/data/quarantine"
+    base: "/quarantine"

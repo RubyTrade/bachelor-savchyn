@@ -8,6 +8,9 @@ cheat_sheet.md
 crash.log
 crash.*.log
 *.hcl
+gold
+silver
+bronze
 
 # Sensitive variable files (e.g., containing secrets)
 *.tfvars

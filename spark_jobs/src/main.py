@@ -5,6 +5,7 @@ from processing.silver_layer import SilverProcessor
 from processing.gold_layer import GoldProcessor
 from pathlib import Path
 import sys
+import time
 
 CONFIG_PATH = Path(__file__).resolve().parents[1] / "configs" / "configs.yaml"
 
@@ -79,21 +80,24 @@ class LakehousePipeline:
     def run_gold_layer(self):
         order_df, account_df = self.gold_layer.read_silver(self.silver_order_path, self.silver_account_path)
 
-        order_df = self.gold_layer.create_orders_table(order_df)
+        order_table = self.gold_layer.create_orders_table(order_df)
 
-        daily_metrics_df = self.gold_layer.create_daily_metrcis(order_df)
+        daily_metrics_table = self.gold_layer.create_daily_metrcis(order_table)
 
-        self.gold_layer.save_to_gold_layer(daily_metrics_df, get_path(self.config, "gold", "daily_metrics"))
-        self.gold_layer.save_to_gold_layer(order_df, get_path(self.config, "gold", "trades"))
+        self.gold_layer.save_to_gold_layer(daily_metrics_table, get_path(self.config, "gold", "daily_metrics"))
+        self.gold_layer.save_to_gold_layer(order_table, get_path(self.config, "gold", "trades"))
 
 
             
 
     def run_pipeline(self):
         try:
+            start = time.time()
             self.run_bronze_layer()
             self.run_silver_layer()
             self.run_gold_layer()
+            end = time.time()
+            print(f"Execution time:  {end - start:.2f}s")
         except Exception as e:
             print(f"failed to run layer error: {e}")
             raise

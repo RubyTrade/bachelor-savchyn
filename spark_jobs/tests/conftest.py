@@ -21,11 +21,6 @@ def spark_jobs_root() -> Path:
 def spark():
     from pyspark.sql import SparkSession
 
-    # Same interpreter for driver and workers (fixes PYTHON_VERSION_MISMATCH on Windows
-    # when SPARK_HOME points at a different Python than pytest).
-    os.environ.setdefault("PYSPARK_PYTHON", sys.executable)
-    os.environ.setdefault("PYSPARK_DRIVER_PYTHON", sys.executable)
-
     session = (
         SparkSession.builder.master("local[1]")
         .appName("trading-pipeline-tests")
