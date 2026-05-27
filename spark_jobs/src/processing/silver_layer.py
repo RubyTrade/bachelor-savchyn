@@ -2,9 +2,6 @@ from utils.spark_utils import Sparktransformations
 from schemas.binance_schemas import BinanceSchemas
 from pyspark.sql.functions import col, from_json, explode_outer
 from pyspark.sql import DataFrame
-from config_loader import load_config, get_path
-from functools import reduce
-from operator import or_, and_
 
 class SilverProcessor:
     def __init__(self, spark, config):
@@ -121,7 +118,6 @@ class SilverProcessor:
             col('raw_json')
         )
 
-        # silver_df = Sparktransformations.filter_not_null(silver_df, ['symbol', 'side', 'order_type', 'event_time'])
         silver_df = Sparktransformations.cast_to_timestamp(silver_df, ['event_time', 'trade_time', 'event_received_time'])
         silver_df = Sparktransformations.add_partition_columns(silver_df, ['event_time'])
         silver_df = Sparktransformations.add_metadata_columns(silver_df, self.schema_version)
@@ -169,9 +165,6 @@ class SilverProcessor:
         return silver_df
     
     def save_quarantine(self, silver_df: DataFrame, columns: list, quarantine_path: str, silver_path: str):
-        # null_condition = reduce(or_, [col(c).isNull() for c in columns])
-        # not_null_condition = reduce(and_, [col(c).isNotNull() for c in columns])
-
         clean_df = Sparktransformations.filter_not_null(silver_df, columns)
         quarantine_df = Sparktransformations.filter_null(silver_df, columns)
 

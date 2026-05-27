@@ -1,12 +1,3 @@
-data "aws_vpc" "default" {
-    default = true
-}
-
-data "aws_subnet" "default" {
-    default_for_az = true
-    availability_zone = var.availability_zone
-}
-
 resource "aws_security_group" "kafka_ec2_sg" {
     name = "${local.appname}-kafka-ec2-sg"
     description = "Allow SSH and Kafka ports"
@@ -30,6 +21,7 @@ resource "aws_security_group" "kafka_ec2_sg" {
             "192.168.0.0/16"
         ]
     }
+    
 
     egress {
         from_port = 0

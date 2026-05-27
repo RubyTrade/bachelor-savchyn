@@ -115,22 +115,22 @@ resource "aws_glue_job" "lakehouse_pipeline" {
   ]
 }
 
-resource "aws_glue_trigger" "lakehouse_manual" {
-  name = "${var.glue_job_name}-manual"
-  type = "ON_DEMAND"
+# resource "aws_glue_trigger" "lakehouse_manual" {
+#   name = "${var.glue_job_name}-manual"
+#   type = "ON_DEMAND"
 
-  actions {
-    job_name = aws_glue_job.lakehouse_pipeline.name
-  }
-}
+#   actions {
+#     job_name = aws_glue_job.lakehouse_pipeline.name
+#   }
+# }
 
-resource "aws_glue_trigger" "lakehouse_daily" {
-  name              = "${var.glue_job_name}-daily"
-  type              = "SCHEDULED"
-  schedule          = var.glue_daily_schedule
-  start_on_creation = var.glue_enable_daily_trigger
+# resource "aws_glue_trigger" "lakehouse_daily" {
+#   name              = "${var.glue_job_name}-daily"
+#   type              = "SCHEDULED"
+#   schedule          = var.glue_daily_schedule
+#   start_on_creation = var.glue_enable_daily_trigger
 
-  actions {
-    job_name = aws_glue_job.lakehouse_pipeline.name
-  }
-}
+#   actions {
+#     job_name = aws_glue_job.lakehouse_pipeline.name
+#   }
+# }

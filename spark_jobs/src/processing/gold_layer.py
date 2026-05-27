@@ -23,7 +23,7 @@ class GoldProcessor:
                 col('avg_price').alias('price'),
                 'realized_pnl', 'trade_time', 'order_status'
                 )
-        gold_orders_df.printSchema()
+        return gold_orders_df
     
     def create_daily_metrcis(self, gold_orders_df: DataFrame):
         df = gold_orders_df.withColumn('day', to_date('trade_time'))
@@ -55,7 +55,6 @@ class GoldProcessor:
                 # TODO: max_drawdown and sharpe
             )  
         )
-        gold_daily_metrics.explain('formatted')
         return gold_daily_metrics
       
         # day   |  total_pnl | win_rate %  |   trades-count| avg_win | avg_loss | max_drawdown | sharpe |
